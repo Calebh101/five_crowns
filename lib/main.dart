@@ -2,8 +2,10 @@ import 'package:five_crowns/scorecard.dart';
 import 'package:five_crowns/scorecard_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:localpkg_flutter/functions.dart';
+import 'package:styled_logger/styled_logger.dart';
 
 void main() {
+  Logger.enable();
   runApp(const MyApp());
 }
 
@@ -31,6 +33,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.blue),
       ),
+      darkTheme: ThemeData.dark(),
       home: Home(),
     );
   }
@@ -68,7 +71,7 @@ class _HomeState extends State<Home> {
           }, icon: Icon(Icons.note_add)),
         ],
       ),
-      body: ScorecardWidget(scorecard: scorecard),
+      body: Center(child: ScorecardWidget(scorecard: scorecard)),
     );
   }
 }
@@ -145,5 +148,11 @@ class _NewScorecardDialogueState extends State<NewScorecardDialogue> {
         }, child: Text("Create")),
       ],
     );
+  }
+}
+
+extension MapTo<K, V> on Map<K, V> {
+  Iterable<T> mapTo<T>(T Function(K key, V value) callback) {
+    return entries.map<T>((e) => callback.call(e.key, e.value));
   }
 }

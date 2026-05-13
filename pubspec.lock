@@ -463,6 +463,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  styled_logger:
+    dependency: "direct main"
+    description:
+      name: styled_logger
+      sha256: "51f3713bba89dff3ba180a9df61c175548a86c408196cc603ce31ee1ed7987ab"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   term_glyph:
     dependency: transitive
     description:

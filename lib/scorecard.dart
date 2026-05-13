@@ -16,11 +16,27 @@ class Scorecard {
 
 class User {
   final String name;
-  late Color themeColor;
 
-  User(this.name, {Color? theme}) {
+  late Color themeColor;
+  late int id;
+
+  static int thisId = 0;
+
+  User(this.name, {Color? theme, int? id_}) {
     themeColor = theme ?? Color((Random().nextDouble() * 0xFFFFFF).toInt());
+    id = id_ ?? nextId;
   }
+
+  Widget toAvatar([double sizeFactor = 1]) => CircleAvatar(
+    radius: 36 * sizeFactor,
+    backgroundColor: themeColor.withAlpha((50 * sizeFactor).round()),
+    child: Text(name.split("").first).fontSize(48 * sizeFactor),
+  );
+
+  int get nextId => thisId++;
+
+  @override bool operator ==(Object other) => other is User && (identical(this, other) || id == other.id);
+  @override int get hashCode => id ^ name.codeUnits.reduce((a, b) => a + b);
 }
 
 class Scores {
@@ -39,8 +55,15 @@ Color? scoreToColor(int score) {
   if (score <= 0) {
     return Colors.green;
   } else if (score <= 20) {
-    return Colors.yellow;
+    return Colors.orange;
   } else {
     return Colors.deepOrangeAccent;
   }
+}
+
+Color placeToColor(int place) {
+  if (place == 1) return Colors.green;
+  if (place == 2) return Colors.orange;
+  if (place == 3) return Colors.deepOrange;
+  return Colors.red;
 }
