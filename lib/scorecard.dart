@@ -168,6 +168,7 @@ p.Document scoreboardToPdf(Scorecard scorecard) {
                       children: [
                         p.Text(scores.total.toString(), style: p.TextStyle(fontSize: 24)),
                         if (scores.total == winner) p.Text("Winner"),
+                        p.Text(user.name),
                       ],
                     ),
                   ],

@@ -222,12 +222,13 @@ class _RoundInputDialogueState extends State<RoundInputDialogue> {
                   child: Column(
                     children: [
                       Text(k.name),
+                      Text(scores[k]?.toString() ?? "0"),
                       k.toAvatar(),
                     ],
                   ),
                 ),
                 TextFormField(
-                  initialValue: v.toString(),
+                  initialValue: v.nullIfNotPositive?.toString() ?? "",
                   onChanged: (value) {
                     value = value.nullIfEmptyTrimmed ?? "0";
                     final x = int.tryParse(value);

@@ -156,6 +156,9 @@ class _NewScorecardDialogueState extends State<NewScorecardDialogue> {
       ),
       actions: [
         TextButton(onPressed: () {
+          context.navigator.pop(Scorecard({}));
+        }, child: Text("Clear")),
+        TextButton(onPressed: () {
           context.navigator.pop();
         }, child: Text("Cancel")),
         TextButton(onPressed: () {
