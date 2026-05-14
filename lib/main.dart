@@ -1,29 +1,30 @@
+import 'dart:convert';
+
 import 'package:five_crowns/scorecard.dart';
 import 'package:five_crowns/scorecard_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:localpkg_flutter/functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:styled_logger/styled_logger.dart';
 
-void main() {
+late SharedPreferences prefs;
+Scorecard? loaded;
+
+void main() async {
   Logger.enable();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  prefs = await SharedPreferences.getInstance();
+  loaded = Scorecard.fromJsonSafe(prefs.getString("current") ?? "");
+
+  Logger.print("Loaded scorecard: ${loaded.runtimeType}");
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static final demoScorecard = Scorecard({
-    User("John"): Scores({
-      3: 0,
-      4: 62,
-      5: 91,
-    }),
-    User("Bob"): Scores({
-      3: 954,
-      4: 0,
-      5: 32,
-    }),
-  });
+  static final demoScorecard = Scorecard({});
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +52,13 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    scorecard = MyApp.demoScorecard;
+    scorecard = loaded ?? MyApp.demoScorecard;
     super.initState();
+  }
+
+  void onModify() {
+    Logger.print("Scorecard modified");
+    prefs.setString("current", jsonEncode(scorecard.toJson()));
   }
 
   @override
@@ -62,16 +68,25 @@ class _HomeState extends State<Home> {
         title: Text("Five Crowns Scorecard"),
         centerTitle: true,
         actions: [
+          IconButton(onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PdfPreviewScreen(scorecard: scorecard),
+              ),
+            );
+          }, icon: Icon(Icons.share)),
           IconButton(onPressed: () async {
             final result = await showDialog<Scorecard>(context: context, builder: (context) => NewScorecardDialogue(defaultUsers: scorecard.scores.keys.map((x) => x.name).toList()));
             if (result == null) return;
 
             scorecard = result;
+            onModify();
             setState(() {});
           }, icon: Icon(Icons.note_add)),
         ],
       ),
-      body: Center(child: ScorecardWidget(scorecard: scorecard)),
+      body: Center(child: ScorecardWidget(scorecard: scorecard, onModify: onModify)),
     );
   }
 }
@@ -97,7 +112,7 @@ class _NewScorecardDialogueState extends State<NewScorecardDialogue> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("New Scoreboard"),
+      title: Text("New Scorecard"),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(

@@ -3,11 +3,14 @@ import 'package:five_crowns/main.dart';
 import 'package:five_crowns/scorecard.dart';
 import 'package:flutter/material.dart';
 import 'package:localpkg_flutter/localpkg.dart';
+import 'package:printing/printing.dart';
 import 'package:styled_logger/styled_logger.dart';
 
 class ScorecardWidget extends StatefulWidget {
   final Scorecard scorecard;
-  const ScorecardWidget({super.key, required this.scorecard});
+  final VoidCallback? onModify;
+
+  const ScorecardWidget({super.key, required this.scorecard, this.onModify});
 
   @override
   State<ScorecardWidget> createState() => _ScorecardWidgetState();
@@ -15,6 +18,10 @@ class ScorecardWidget extends StatefulWidget {
 
 class _ScorecardWidgetState extends State<ScorecardWidget> {
   int? currentRound = rounds.first;
+
+  void onModify() {
+    widget.onModify?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +32,21 @@ class _ScorecardWidgetState extends State<ScorecardWidget> {
       return allTotals.toList().indexWhere((x) => x == total) + 1;
     }
 
-    return SingleChildScrollView(
+    return scores.isEmpty ? Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("No scorecard loaded!").fontSize(24),
+          Text.rich(TextSpan(
+            children: [
+              TextSpan(text: "Press "),
+              WidgetSpan(child: Icon(Icons.note_add)),
+              TextSpan(text: " to create a new scorecard!"),
+            ],
+          )),
+        ],
+      ),
+    ) : SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
@@ -33,7 +54,7 @@ class _ScorecardWidgetState extends State<ScorecardWidget> {
           defaultColumnWidth: const IntrinsicColumnWidth(),
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           children: [
-            if (scores.isNotEmpty) TableRow(
+            TableRow(
               children: [
                 SizedBox.shrink(),
                 ...[...rounds, null].map((round) {
@@ -67,6 +88,7 @@ class _ScorecardWidgetState extends State<ScorecardWidget> {
                                 final result = await ConfirmationDialogue.show(context: context, title: "Are you sure?", description: "Are you sure you want to delete player ${entry.key.name}? You can't undo this!");
                                 if (result != true) return;
                                 widget.scorecard.scores.remove(entry.key);
+                                onModify();
                                 setState(() {});
                               }, icon: Icon(Icons.delete, color: Colors.red)),
                             ],
@@ -139,6 +161,7 @@ class _ScorecardWidgetState extends State<ScorecardWidget> {
                   if (result != true || controller.text.trim().isEmpty) return;
                   final user = User(controller.text);
                   widget.scorecard.scores[user] = Scores();
+                  onModify();
                   setState(() {});
                 }, icon: Icon(Icons.add)),
                 ...[...rounds, null].map((round) {
@@ -151,6 +174,7 @@ class _ScorecardWidgetState extends State<ScorecardWidget> {
 
                     for (final x in result.entries) {
                       widget.scorecard.scores[x.key]!.scores[round] = x.value;
+                      onModify();
                     }
 
                     setState(() {});
@@ -222,6 +246,25 @@ class _RoundInputDialogueState extends State<RoundInputDialogue> {
         TextButton(onPressed: () => context.navigator.pop(), child: Text("Cancel")),
         TextButton(onPressed: () => context.navigator.pop(scores), child: Text("OK")),
       ],
+    );
+  }
+}
+
+class PdfPreviewScreen extends StatelessWidget {
+  final Scorecard scorecard;
+
+  const PdfPreviewScreen({super.key, required this.scorecard});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Scorecard PDF')),
+      body: PdfPreview(
+        build: (format) async {
+          final doc = scoreboardToPdf(scorecard);
+          return doc.save();
+        },
+      ),
     );
   }
 }
