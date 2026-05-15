@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:five_crowns/scorecard.dart';
 import 'package:five_crowns/scorecard_widget.dart';
 import 'package:flutter/material.dart';
@@ -172,5 +173,11 @@ class _NewScorecardDialogueState extends State<NewScorecardDialogue> {
 extension MapTo<K, V> on Map<K, V> {
   Iterable<T> mapTo<T>(T Function(K key, V value) callback) {
     return entries.map<T>((e) => callback.call(e.key, e.value));
+  }
+}
+
+extension MapList<T> on List<T> {
+  List<R> mapList<R>(R Function(T item) convert) {
+    return mapIndexed((i, x) => convert.call(x)).toList();
   }
 }

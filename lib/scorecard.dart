@@ -68,7 +68,7 @@ class User {
   Widget toAvatar([double sizeFactor = 1]) => CircleAvatar(
     radius: 36 * sizeFactor,
     backgroundColor: themeColor.withAlpha((50 * sizeFactor).round()),
-    child: Text(name.split("").first).fontSize(48 * sizeFactor),
+    child: Text(name.split("").first).fontSize(36 * sizeFactor),
   );
 
   static int get nextId => thisId++;
@@ -127,8 +127,18 @@ Color placeToColor(int place) {
 }
 
 p.Document scoreboardToPdf(Scorecard scorecard) {
+  const double rowHeight = 55;
+  const double smallRowHeight = 20;
+
   final doc = p.Document();
   final winner = scorecard.scores.entries.sorted((a, b) => a.value.total.compareTo(b.value.total)).firstOrNull?.value.total ?? 0;
+
+  p.SizedBox sized<T extends p.Widget>(T? widget, {double? height, bool small = false}) {
+    return p.SizedBox(
+      height: height ?? (small ? smallRowHeight : rowHeight),
+      child: widget,
+    );
+  }
 
   doc.addPage(
     p.Page(
@@ -141,11 +151,11 @@ p.Document scoreboardToPdf(Scorecard scorecard) {
           crossAxisAlignment: p.CrossAxisAlignment.start,
           children: [
             p.Column(
-              mainAxisAlignment: p.MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: p.MainAxisAlignment.start,
               crossAxisAlignment: p.CrossAxisAlignment.center,
               children: [
-                p.Text('Round'),
-                ...rounds.map((round) => p.Text("$round\n")),
+                sized(p.Text('Round'), small: true),
+                ...rounds.map((round) => sized(p.Text("$round\n"))),
                 p.Text('Total'),
               ],
             ),
@@ -156,14 +166,14 @@ p.Document scoreboardToPdf(Scorecard scorecard) {
 
               return p.Expanded(
                 child: p.Column(
-                  mainAxisAlignment: p.MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: p.MainAxisAlignment.start,
                   crossAxisAlignment: p.CrossAxisAlignment.center,
                   children: [
-                    p.Text(user.name, textAlign: p.TextAlign.center),
+                    sized(p.Text(user.name, textAlign: p.TextAlign.center), small: true),
                     ...scores.scoresFilled.mapTo((round, score) {
                       totalSoFar += score;
                       return p.Text("$score${round == rounds.last ? "" : "\n= $totalSoFar"}", textAlign: p.TextAlign.center);
-                    }),
+                    }).map(sized),
                     p.Column(
                       children: [
                         p.Text(scores.total.toString(), style: p.TextStyle(fontSize: 24)),
